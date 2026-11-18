@@ -1,7 +1,9 @@
 import random
+import sys
 
 guess_word = ""
 guessed_words = []
+found_chars = []
 
 def prRed(s): print("\033[91m{}\033[00m".format(s), end="")
 def prGreen(s): print("\033[92m{}\033[00m".format(s), end="")
@@ -23,6 +25,7 @@ def choose_random_word():
 def update_board(initialize, word):
     global guess_word
     global guessed_words
+    global found_chars
     if initialize:
         guess_word = word
     else:
@@ -30,15 +33,19 @@ def update_board(initialize, word):
         for word in guessed_words:
             for j, char in enumerate(word):
                 if char == guess_word[j]:
+                    found_chars.append(char)
                     prGreen(f"{char}")
-                elif guess_word.find(char) != -1 and char != guess_word[j]:
+                elif any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
                     prYellow(f"{char}")
                 else:
                     print(f"{char}", end="")
             print()
 
 def init_game():
-    word = input("Enter word to guess for testing (Keep empty to randomize): ")
+    word = ""
+    if len(sys.argv) > 1:
+        word = sys.argv[1]
+
     if word:
         update_board(True, word)
     else:
@@ -57,7 +64,8 @@ def start_game():
             print(guess_word)
             break
         else:
-            print("You won!")
+            prGreen("You won!")
+            print()
             break
 
 
