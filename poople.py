@@ -33,14 +33,20 @@ def update_board(initialize, word):
         for word in guessed_words:
             for j, char in enumerate(word):
                 if char == guess_word[j]:
-                    found_chars.append(char)
-                    prGreen(f"{char}")
-                elif any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
-                    prYellow(f"{char}")
-                else:
-                    print(f"{char}", end="")
-            print()
+                    found_chars.append({"character": char, "color": "green", "index": j})
+            for j, char in enumerate(word):
+                if any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
+                    found_chars.append({"character": char, "color": "yellow", "index": j})
 
+
+# if char == guess_word[j]:
+#                     found_chars.append(char)
+#                     prGreen(f"{char}")
+#                 elif any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
+#                     prYellow(f"{char}")
+#                 else:
+#                     print(f"{char}", end="")
+#             print()
 def init_game():
     word = ""
     if len(sys.argv) > 1:
