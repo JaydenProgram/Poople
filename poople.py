@@ -4,6 +4,7 @@ import sys
 guess_word = ""
 max_guesses = 0
 guessed_words = []
+formatted_guessed_words = {}
 
 def prRed(s, noNewLine=False): print("\033[91m{}\033[00m".format(s), end="" if noNewLine else "\n")
 def prGreen(s, noNewLine=False): print("\033[92m{}\033[00m".format(s), end="" if noNewLine else "\n")
@@ -26,28 +27,25 @@ def update_board(word):
     colors = []
     for j, char in enumerate(guess_word):
         word_copy.append(char)
-        colors.append("grey")
+        colors.append("\033[97m{}\033[00m")
     
     for j, char in enumerate(word):
         if char == guess_word[j]:
-            colors[j] = "green"
+            colors[j] = f"\033[92m{char}\033[00m"
             word_copy.remove(char)
     for j, char in enumerate(word):
         if (char in word_copy and char != guess_word[j]):
-            colors[j] = "yellow"
+            colors[j] = f"\033[93m{char}\033[00m"
             word_copy.remove(char)
     guessed_words.append({"word": word, "colors": colors})
     
 def print_board():
     print()
+    combined = []
     for entry in guessed_words:
         for i, char in enumerate(entry['word']):
-            if entry['colors'][i] == "green":
-                prGreen(f"{char}", True)
-            if entry['colors'][i] == "yellow":
-                prYellow(f"{char}", True)
-            elif entry['colors'][i] == "grey":
-                print(f"{char}", end="")
+            combined.append(f"{entry['colors'][i]}{char}")
+            print(combined)
         print()
     for _ in range(max_guesses - len(guessed_words)):
         for _ in enumerate(guess_word):
