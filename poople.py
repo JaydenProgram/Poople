@@ -4,7 +4,6 @@ import sys
 guess_word = ""
 max_guesses = 0
 guessed_words = []
-formatted_guessed_words = {}
 
 def prRed(s, noNewLine=False): print("\033[91m{}\033[00m".format(s), end="" if noNewLine else "\n")
 def prGreen(s, noNewLine=False): print("\033[92m{}\033[00m".format(s), end="" if noNewLine else "\n")
@@ -22,37 +21,39 @@ def choose_random_word():
     return random.choice(words)
 
 def update_board(word):
-    global guessed_words
     word_copy = []
-    colors = []
-    for j, char in enumerate(guess_word):
+    formatted_words_list = []
+    for char in guess_word:
         word_copy.append(char)
-        colors.append("\033[97m{}\033[00m")
+
+    for char in word:
+        formatted_words_list.append("\033[97m{}\033[00m".format(char))
     
     for j, char in enumerate(word):
         if char == guess_word[j]:
-            colors[j] = f"\033[92m{char}\033[00m"
+            formatted_words_list[j] = "\033[92m{}\033[00m".format(char)
             word_copy.remove(char)
     for j, char in enumerate(word):
         if (char in word_copy and char != guess_word[j]):
-            colors[j] = f"\033[93m{char}\033[00m"
+            formatted_words_list[j] = "\033[93m{}\033[00m".format(char)
             word_copy.remove(char)
-    guessed_words.append({"word": word, "colors": colors})
-    
-def print_board():
-    print()
-    combined = []
-    for entry in guessed_words:
-        for i, char in enumerate(entry['word']):
-            combined.append(f"{entry['colors'][i]}{char}")
-            print(combined)
-        print()
-    for _ in range(max_guesses - len(guessed_words)):
-        for _ in enumerate(guess_word):
-            print(f"_", end="")
-        print()
-    print()
 
+    
+    combined_word = "  ".join(formatted_words_list)
+    guessed_words.append(combined_word)
+
+def print_board():
+    width = (len(guess_word) + len(guess_word) * 2)
+    print("┏" + "━" * width + "┓")
+    for entry in guessed_words:
+        print("┃ " + entry + " ┃")
+    underscore_list = []
+    for _ in guess_word:
+        underscore_list.append("_")
+    underscore_string = "  ".join(underscore_list)
+    for _ in range(max_guesses - len(guessed_words)):
+        print("┃ " + underscore_string + " ┃")
+    print("┗" + "━" * width + "┛")
 def init_game():
     global guess_word
     global max_guesses
@@ -70,7 +71,7 @@ def start_game():
     while True:
         print_board()
         if len(guessed_words) >= max_guesses:
-            prRed(f"Game over! Ran out of guesses: {len(guessed_words)} out of {max_guesses} guesses")
+            prRed(f"Game over! Ran out of guesses. The word was: {guess_word}")
             break
         guess = input("Enter your guess: ").upper()
         if guess == "GIVE UP":
@@ -88,6 +89,7 @@ def start_game():
             update_board(guess)
         else:
             update_board(guess)
+            print_board()
             prGreen("You won!")
             break
 
