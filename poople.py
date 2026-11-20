@@ -3,7 +3,6 @@ import sys
 
 guess_word = ""
 guessed_words = []
-found_chars = []
 
 def prRed(s): print("\033[91m{}\033[00m".format(s), end="")
 def prGreen(s): print("\033[92m{}\033[00m".format(s), end="")
@@ -25,28 +24,36 @@ def choose_random_word():
 def update_board(initialize, word):
     global guess_word
     global guessed_words
-    global found_chars
+    word_copy = []
+    colors = []
     if initialize:
         guess_word = word
+        print(guess_word)
     else:
-        guessed_words.append(f"{word}")
+        for j, char in enumerate(guess_word):
+            word_copy.append(char)
+            colors.append("grey")
+        
+        for j, char in enumerate(word):
+            if char == guess_word[j]:
+                colors[j] = "green"
+                word_copy.remove(char)
+        for j, char in enumerate(word):
+            if (char in word_copy and char != guess_word[j]):
+                colors[j] = "yellow"
+                word_copy.remove(char)
+
+        guessed_words.append({"word": word, "colors": colors})
         for word in guessed_words:
-            for j, char in enumerate(word):
-                if char == guess_word[j]:
-                    found_chars.append({"character": char, "color": "green", "index": j})
-            for j, char in enumerate(word):
-                if any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
-                    found_chars.append({"character": char, "color": "yellow", "index": j})
+            for i, char in enumerate(word['word']):
+                if word['colors'][i] == "green":
+                    prGreen(f"{char}")
+                if word['colors'][i] == "yellow":
+                    prYellow(f"{char}")
+                elif word['colors'][i] == "grey":
+                    print(f"{char}", end="")
+            print()
 
-
-# if char == guess_word[j]:
-#                     found_chars.append(char)
-#                     prGreen(f"{char}")
-#                 elif any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
-#                     prYellow(f"{char}")
-#                 else:
-#                     print(f"{char}", end="")
-#             print()
 def init_game():
     word = ""
     if len(sys.argv) > 1:
