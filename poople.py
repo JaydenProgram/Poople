@@ -2,70 +2,95 @@ import random
 import sys
 
 guess_word = ""
+max_guesses = 0
 guessed_words = []
-found_chars = []
 
-def prRed(s): print("\033[91m{}\033[00m".format(s), end="")
-def prGreen(s): print("\033[92m{}\033[00m".format(s), end="")
-def prYellow(s): print("\033[93m{}\033[00m".format(s), end="")
+def prRed(s, noNewLine=False): print("\033[91m{}\033[00m".format(s), end="" if noNewLine else "\n")
+def prGreen(s, noNewLine=False): print("\033[92m{}\033[00m".format(s), end="" if noNewLine else "\n")
+def prYellow(s, noNewLine=False): print("\033[93m{}\033[00m".format(s), end="" if noNewLine else "\n")
 
 def choose_random_word():
     words = []
-    file = open("words.txt", "r")
-    line = file.readline()
-    while line:
-        words.append(line.rstrip())
+    file_path = "words.txt"
+    with open(file_path, "r") as file:
         line = file.readline()
+        while line:
+            words.append(line.rstrip().upper())
+            line = file.readline()
+            
+    return random.choice(words)
 
-    file.close()
-
-    words_len = len(words)
-    return words[random.randint(0, words_len - 1)]
-
-def update_board(initialize, word):
-    global guess_word
+def update_board(word):
     global guessed_words
-    global found_chars
-    if initialize:
-        guess_word = word
-    else:
-        guessed_words.append(f"{word}")
-        for word in guessed_words:
-            for j, char in enumerate(word):
-                if char == guess_word[j]:
-                    found_chars.append(char)
-                    prGreen(f"{char}")
-                elif any(c == char for c in found_chars) != True and (guess_word.find(char) != -1 and char != guess_word[j]):
-                    prYellow(f"{char}")
-                else:
-                    print(f"{char}", end="")
-            print()
+    word_copy = []
+    colors = []
+    for j, char in enumerate(guess_word):
+        word_copy.append(char)
+        colors.append("grey")
+    
+    for j, char in enumerate(word):
+        if char == guess_word[j]:
+            colors[j] = "green"
+            word_copy.remove(char)
+    for j, char in enumerate(word):
+        if (char in word_copy and char != guess_word[j]):
+            colors[j] = "yellow"
+            word_copy.remove(char)
+    guessed_words.append({"word": word, "colors": colors})
+    
+def print_board():
+    print()
+    for entry in guessed_words:
+        for i, char in enumerate(entry['word']):
+            if entry['colors'][i] == "green":
+                prGreen(f"{char}", True)
+            if entry['colors'][i] == "yellow":
+                prYellow(f"{char}", True)
+            elif entry['colors'][i] == "grey":
+                print(f"{char}", end="")
+        print()
+    for _ in range(max_guesses - len(guessed_words)):
+        for _ in enumerate(guess_word):
+            print(f"_", end="")
+        print()
+    print()
 
 def init_game():
+    global guess_word
+    global max_guesses
     word = ""
     if len(sys.argv) > 1:
-        word = sys.argv[1]
+        word = sys.argv[1].upper()
 
     if word:
-        update_board(True, word)
+        guess_word = word
     else:
-        update_board(True, choose_random_word())
+        guess_word = choose_random_word()
+    max_guesses = len(guess_word) + 1
     
 def start_game():
     while True:
-        guess = input("Enter your guess: ")
-        if len(guess) != len(guess_word):
-            print(f"Not enough characters, {len(guess), len(guess_word)}")
+        print_board()
+        if len(guessed_words) >= max_guesses:
+            prRed(f"Game over! Ran out of guesses: {len(guessed_words)} out of {max_guesses} guesses")
+            break
+        guess = input("Enter your guess: ").upper()
+        if guess == "GIVE UP":
+            print(guess_word)
+            break
+
+        if len(guess) > len(guess_word):
+            prRed(f"Too much characters, you have: {len(guess)} characters, you need: {len(guess_word)} characters")
+            continue
+        elif len(guess) < len(guess_word):
+            prRed(f"Too little characters, you have: {len(guess)} characters, you need: {len(guess_word)} characters")
             continue
 
         if guess != guess_word:
-            update_board(False, guess)
-        elif guess == "Give Up":
-            print(guess_word)
-            break
+            update_board(guess)
         else:
+            update_board(guess)
             prGreen("You won!")
-            print()
             break
 
 
